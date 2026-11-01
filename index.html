@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M-PESA Payment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f5f3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .payment-box {
+            background: white;
+            padding: 30px;
+            width: 320px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #0002;
+        }
+
+        h2 {
+            text-align: center;
+            color: #168344;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            background: #168344;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #106333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="payment-box">
+    <h2>M-PESA Payment</h2>
+
+    <label>Phone Number</label>
+    <input type="tel" id="phone"
+           placeholder="07XXXXXXXX">
+
+    <label>Amount (KSh)</label>
+    <input type="number" id="amount"
+           placeholder="Enter amount" min="1">
+
+    <button onclick="promptPayment()">
+        Prompt Payment
+    </button>
+
+    <p id="message"></p>
+</div>
+
+<script>
+function promptPayment() {
+    let phone = document.getElementById("phone").value;
+    let amount = document.getElementById("amount").value;
+
+    if (!/^07\d{8}$/.test(phone) &&
+        !/^01\d{8}$/.test(phone)) {
+        alert("Enter a valid Kenyan phone number.");
+        return;
+    }
+
+    if (!amount || Number(amount) <= 0) {
+        alert("Enter a valid amount.");
+        return;
+    }
+
+    alert(
+        "Phone: " + phone +
+        "\nAmount: KSh " + amount +
+        "\n\nPayment request is ready."
+    );
+}
+</script>
+
+</body>
+</html>
