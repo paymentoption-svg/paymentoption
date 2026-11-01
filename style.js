@@ -4,10 +4,10 @@
 // ===================================
 
 const SUPABASE_URL =
-"https://hisoknujnrdvgbgwjwdm.supabase.co";
+    "https://hisoknujnrdvgbgwjwdm.supabase.co";
 
 const SUPABASE_KEY =
-"sb_publishable_qEktVTgKrP5sIzf-HeTMyg_734tagyd";
+    "sb_publishable_qEktVTgKrP5sIzf-HeTMyg_734tagyd";
 
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
@@ -21,143 +21,202 @@ const supabaseClient = window.supabase.createClient(
 
 let paymentInProgress = false;
 
-document.getElementById("paymentForm")
-.addEventListener("submit", async function(event) {
+document.getElementById("paymentForm").addEventListener(
+    "submit",
+    async function (event) {
 
-    event.preventDefault();
+        event.preventDefault();
 
-    if (paymentInProgress) return;
+        if (paymentInProgress) return;
 
-    const phone = document.getElementById("phone").value.trim();
-    const amount = Number(document.getElementById("amount").value);
+        const phone = document.getElementById("phone").value.trim();
+        const amount = Number(
+            document.getElementById("amount").value
+        );
 
-    const message = document.getElementById("message");
-    const button = document.getElementById("paymentButton");
+        const message = document.getElementById("message");
+        const button = document.getElementById("paymentButton");
 
-    // Validate Kenyan phone number
-    if (!/^(07|01)\d{8}$/.test(phone)) {
-        message.className = "error";
-        message.innerText = "Enter a valid Kenyan phone number.";
-        return;
-    }
-
-    // Validate amount
-    if (!Number.isSafeInteger(amount) || amount <= 0) {
-        message.className = "error";
-        message.innerText = "Enter a valid amount.";
-        return;
-    }
-
-    paymentInProgress = true;
-    button.disabled = true;
-    button.innerText = "Sending Prompt...";
-
-    message.className = "waiting";
-    message.innerText = "Connecting to M-PESA. Please wait...";
-
-    try {
-
-        // Send STK Push request
-        const { data, error } =
-            await supabaseClient.functions.invoke(
-                "mpesa-push",
-                {
-                    body: {
-                        phone: phone,
-                        amount: amount
-                    }
-                }
-            );
-
-        if (error) throw error;
-
-        if (!data || !data.success) {
-            throw new Error(
-                data?.message || "Unable to send payment prompt."
-            );
+        // Validate phone number
+        if (!/^(07|01)\d{8}$/.test(phone)) {
+            message.className = "error";
+            message.innerText =
+                "Enter a valid Kenyan phone number.";
+            return;
         }
 
-        // Get checkout reference
-        const checkoutID = data.checkout_request_id;
-
-        if (!checkoutID) {
-            throw new Error("Missing payment reference from Daraja.");
+        // Validate amount
+        if (
+            !Number.isSafeInteger(amount) ||
+            amount < 1 ||
+            amount > 150000
+        ) {
+            message.className = "error";
+            message.innerText =
+                "Enter an amount between KSh 1 and KSh 150,000.";
+            return;
         }
+
+        paymentInProgress = true;
+
+        button.disabled = true;
+        button.innerText = "Sending Prompt...";
 
         message.className = "waiting";
-        message.innerHTML = `
-            <strong>M-PESA prompt sent!</strong><br>
-            Check your phone ${phone}.<br>
-            Enter your M-PESA PIN.<br><br>
-            Waiting for payment confirmation...
-        `;
+        message.innerText =
+            "Connecting to M-PESA. Please wait...";
 
-        button.innerText = "Waiting for Payment";
+        try {
 
-        // Check payment status
-        let completed = false;
+            // ===================================
+            // 3. SEND STK PUSH REQUEST
+            // ===================================
 
-        for (let i = 0; i < 40; i++) {
+            const { data, error } =
+                await supabaseClient.functions.invoke(
+                    "Mpesa-push",
+                    {
+                        body: {
+                            phone: phone,
+                            amount: amount
+                        }
+                    }
+                );
 
-            await new Promise(resolve =>
-                setTimeout(resolve, 3000)
-            );
+            if (error) {
+                console.error("Supabase function error:", error);
+                throw new Error(
+                    error.message ||
+                    "Could not connect to the payment server."
+                );
+            }
 
-            const { data: payment, error: checkError } =
-                await supabaseClient
+            if (!data || !data.success) {
+                throw new Error(
+                    data?.message ||
+                    "Unable to send payment prompt."
+                );
+            }
+
+            // ===================================
+            // 4. GET CHECKOUT REFERENCE
+            // ===================================
+
+            const checkoutID = data.checkout_request_id;
+
+            if (!checkoutID) {
+                throw new Error(
+                    "Missing payment reference from Safaricom."
+                );
+            }
+
+            // ===================================
+            // 5. DISPLAY STK PUSH MESSAGE
+            // ===================================
+
+            message.className = "waiting";
+
+            message.innerHTML = `
+                <strong>M-PESA prompt sent!</strong><br>
+                Check your phone ${phone}.<br>
+                Enter your M-PESA PIN.<br><br>
+                Waiting for payment confirmation...
+            `;
+
+            button.innerText = "Waiting for Payment";
+
+            // ===================================
+            // 6. CHECK PAYMENT STATUS
+            // ===================================
+
+            let completed = false;
+
+            for (let i = 0; i < 40; i++) {
+
+                await new Promise(resolve =>
+                    setTimeout(resolve, 3000)
+                );
+
+                const {
+                    data: payment,
+                    error: checkError
+                } = await supabaseClient
                     .from("payments")
                     .select("status, mpesa_receipt_number")
                     .eq("checkout_request_id", checkoutID)
                     .maybeSingle();
 
-            if (checkError) throw checkError;
+                if (checkError) {
+                    console.error(
+                        "Payment status error:",
+                        checkError
+                    );
 
-            if (!payment) continue;
+                    throw new Error(
+                        "Payment was requested, but confirmation could not be checked. Please check your M-PESA messages."
+                    );
+                }
 
-            if (payment.status === "Paid") {
+                if (!payment) continue;
 
-                message.className = "success";
-                message.innerHTML = `
-                    <strong>✓ PAYMENT SUCCESSFUL!</strong><br>
-                    Amount: KSh ${amount.toLocaleString()}<br>
-                    Receipt: ${payment.mpesa_receipt_number || "Confirmed"}
-                `;
+                if (payment.status === "Paid") {
 
-                completed = true;
-                break;
+                    message.className = "success";
+
+                    message.innerHTML = `
+                        <strong>✓ PAYMENT SUCCESSFUL!</strong><br>
+                        Amount: KSh ${amount.toLocaleString()}<br>
+                        Receipt: ${
+                            payment.mpesa_receipt_number || "Confirmed"
+                        }
+                    `;
+
+                    completed = true;
+                    break;
+                }
+
+                if (payment.status === "Failed") {
+
+                    message.className = "error";
+
+                    message.innerText =
+                        "Payment was unsuccessful. Please try again.";
+
+                    completed = true;
+                    break;
+                }
             }
 
-            if (payment.status === "Failed") {
+            // ===================================
+            // 7. PAYMENT TIMEOUT
+            // ===================================
 
-                message.className = "error";
+            if (!completed) {
+
+                message.className = "waiting";
+
                 message.innerText =
-                    "Payment was unsuccessful. Please try again.";
-
-                completed = true;
-                break;
+                    "Confirmation is taking longer than expected. " +
+                    "Check your M-PESA messages before trying again.";
             }
-        }
 
-        if (!completed) {
-            message.className = "waiting";
+        } catch (error) {
+
+            console.error("Payment error:", error);
+
+            message.className = "error";
+
             message.innerText =
-                "Confirmation is taking longer than expected. " +
-                "Check your M-PESA messages before trying again.";
+                error.message ||
+                "Payment request failed. Please try again.";
+
+        } finally {
+
+            paymentInProgress = false;
+
+            button.disabled = false;
+            button.innerText = "Prompt Payment";
         }
 
-    } catch (error) {
-
-        console.error("Payment error:", error);
-
-        message.className = "error";
-        message.innerText =
-            error.message || "Payment request failed.";
-
-    } finally {
-
-        paymentInProgress = false;
-        button.disabled = false;
-        button.innerText = "Prompt Payment";
     }
-
-});
+);
