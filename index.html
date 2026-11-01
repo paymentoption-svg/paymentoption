@@ -7,7 +7,6 @@
 
     <title>M-PESA Payment System</title>
 
-    <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -99,6 +98,19 @@
             overflow-wrap: anywhere;
         }
 
+        .success {
+            color: #168344;
+            font-weight: bold;
+        }
+
+        .waiting {
+            color: #b7791f;
+        }
+
+        .error {
+            color: red;
+        }
+
         .footer {
             text-align: center;
             font-size: 12px;
@@ -159,7 +171,7 @@
     <p id="message"></p>
 
     <div class="footer">
-        Secure Payment Records | Powered by Supabase
+        Secure M-PESA Payment | Powered by Supabase
     </div>
 
 </div>
@@ -170,9 +182,11 @@
 // 1. SUPABASE CONNECTION
 // ===================================
 
-const SUPABASE_URL = "https://hisoknujnrdvgbgwjwdm.supabase.co";
+const SUPABASE_URL =
+"https://hisoknujnrdvgbgwjwdm.supabase.co";
 
-const SUPABASE_KEY = "sb_publishable_qEktVTgKrP5sIzf-HeTMyg_734tagyd";
+const SUPABASE_KEY =
+"sb_publishable_qEktVTgKrP5sIzf-HeTMyg_734tagyd";
 
 const supabaseClient = supabase.createClient(
     SUPABASE_URL,
@@ -184,30 +198,35 @@ const supabaseClient = supabase.createClient(
 // 2. PAYMENT FUNCTION
 // ===================================
 
+let paymentInProgress = false;
+
 document.getElementById("paymentForm")
 .addEventListener("submit", async function(event) {
 
     event.preventDefault();
 
-    const phone = document.getElementById("phone").value.trim();
+    if (paymentInProgress) return;
 
-    const amount = Number(
-        document.getElementById("amount").value
-    );
+    const phone =
+        document.getElementById("phone").value.trim();
 
-    const message = document.getElementById("message");
+    const amount =
+        Number(document.getElementById("amount").value);
 
-    const button = document.getElementById("paymentButton");
+    const message =
+        document.getElementById("message");
+
+    const button =
+        document.getElementById("paymentButton");
 
 
     // Validate phone number
 
     if (!/^(07|01)\d{8}$/.test(phone)) {
 
-        message.style.color = "red";
-
-        message.innerHTML =
-            "Please enter a valid Kenyan phone number.";
+        message.className = "error";
+        message.innerText =
+            "Enter a valid Kenyan phone number.";
 
         return;
     }
@@ -217,84 +236,148 @@ document.getElementById("paymentForm")
 
     if (!Number.isSafeInteger(amount) || amount <= 0) {
 
-        message.style.color = "red";
-
-        message.innerHTML =
-            "Please enter a valid whole amount.";
+        message.className = "error";
+        message.innerText =
+            "Enter a valid amount.";
 
         return;
     }
 
 
-    // Disable button while saving
+    paymentInProgress = true;
 
     button.disabled = true;
+    button.innerText = "Sending Prompt...";
 
-    button.innerText = "Saving Payment...";
-
-    message.style.color = "#555";
-
-    message.innerHTML = "Please wait...";
+    message.className = "waiting";
+    message.innerText =
+        "Connecting to M-PESA. Please wait...";
 
 
     try {
 
-        // Save payment in Supabase
+        // Initiate actual STK Push
 
-        const { data, error } = await supabaseClient
-
-            .from("payments")
-
-            .insert([
+        const { data, error } =
+            await supabaseClient.functions.invoke(
+                "mpesa-push",
                 {
-                    phone: phone,
-                    amount: amount,
-                    status: "Pending"
+                    body: {
+                        phone: phone,
+                        amount: amount
+                    }
                 }
-            ])
-
-            .select("id")
-            .single();
+            );
 
 
-        if (error) {
+        if (error) throw error;
 
-            throw error;
-
+        if (!data || !data.success) {
+            throw new Error(
+                data?.message || "Unable to send payment prompt."
+            );
         }
 
 
-        // Successful database insertion
+        // STK Push successfully initiated
 
-        message.style.color = "green";
+        message.className = "waiting";
 
         message.innerHTML = `
-            <strong>Payment Record Saved!</strong><br>
-            Payment ID: ${data.id}<br>
-            Phone: ${phone}<br>
-            Amount: KSh ${amount.toLocaleString()}<br>
-            Status: Pending
+            <strong>M-PESA prompt sent!</strong><br>
+            Check your phone ${phone}.<br>
+            Enter your M-PESA PIN to complete payment.
+            <br><br>
+            Waiting for payment confirmation...
         `;
 
+        button.innerText = "Waiting for Payment";
 
-        // Clear form
 
-        document.getElementById("paymentForm").reset();
+        // Wait for callback confirmation
 
+        const checkoutID = data.checkout_request_id;
+
+        if (!checkoutID) {
+            throw new Error(
+                "Missing payment reference from Daraja."
+            );
+        }
+
+        let completed = false;
+
+        // Check database for callback result
+        // Every 3 seconds, for up to 2 minutes
+
+        for (let i = 0; i < 40; i++) {
+
+            await new Promise(resolve =>
+                setTimeout(resolve, 3000)
+            );
+
+            const { data: payment, error: checkError } =
+                await supabaseClient
+                    .from("payments")
+                    .select("status, mpesa_receipt_number")
+                    .eq("checkout_request_id", checkoutID)
+                    .maybeSingle();
+
+            if (checkError) {
+                throw checkError;
+            }
+
+            if (!payment) continue;
+
+            if (payment.status === "Paid") {
+
+                message.className = "success";
+
+                message.innerHTML = `
+                    <strong>✓ PAYMENT SUCCESSFUL!</strong><br>
+                    Amount: KSh ${amount.toLocaleString()}<br>
+                    Receipt: ${payment.mpesa_receipt_number}
+                `;
+
+                completed = true;
+                break;
+            }
+
+            if (payment.status === "Failed") {
+
+                message.className = "error";
+
+                message.innerHTML =
+                    "Payment was unsuccessful. Please try again.";
+
+                completed = true;
+                break;
+            }
+        }
+
+        if (!completed) {
+
+            message.className = "waiting";
+
+            message.innerHTML =
+                "Payment confirmation is taking longer than expected. " +
+                "Please check your M-PESA messages before trying again.";
+
+        }
 
     } catch (error) {
 
         console.error("Payment error:", error);
 
-        message.style.color = "red";
+        message.className = "error";
 
-        message.innerHTML =
-            "Unable to save payment. " + error.message;
+        message.innerText =
+            error.message || "Payment request failed.";
 
     } finally {
 
-        button.disabled = false;
+        paymentInProgress = false;
 
+        button.disabled = false;
         button.innerText = "Prompt Payment";
 
     }
