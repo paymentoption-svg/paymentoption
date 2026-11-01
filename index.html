@@ -4,8 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M-PESA Payment</title>
+
+    <title>M-PESA Payment System</title>
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background: #f2f5f3;
@@ -13,12 +22,15 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            margin: 0;
+            padding: 20px;
         }
 
         .payment-box {
             background: white;
             padding: 30px;
-            width: 320px;
+            width: 100%;
+            max-width: 380px;
             border-radius: 12px;
             box-shadow: 0 4px 15px #0002;
         }
@@ -26,75 +38,269 @@
         h2 {
             text-align: center;
             color: #168344;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #333;
         }
 
         input {
             width: 100%;
             padding: 12px;
-            margin: 10px 0;
-            box-sizing: border-box;
+            margin-top: 8px;
             border: 1px solid #ccc;
             border-radius: 6px;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #168344;
         }
 
         button {
             width: 100%;
             padding: 13px;
+            margin-top: 25px;
             background: #168344;
             color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
             font-size: 16px;
+            font-weight: bold;
         }
 
         button:hover {
             background: #106333;
         }
+
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            margin-top: 20px;
+        }
+
+        .mpesa-logo {
+            text-align: center;
+            font-size: 25px;
+            font-weight: bold;
+            color: #168344;
+        }
     </style>
 </head>
+
 <body>
 
 <div class="payment-box">
-    <h2>M-PESA Payment</h2>
 
-    <label>Phone Number</label>
-    <input type="tel" id="phone"
-           placeholder="07XXXXXXXX">
+    <div class="mpesa-logo">M-PESA</div>
 
-    <label>Amount (KSh)</label>
-    <input type="number" id="amount"
-           placeholder="Enter amount" min="1">
+    <h2>Payment System</h2>
 
-    <button onclick="promptPayment()">
-        Prompt Payment
-    </button>
+    <p class="subtitle">
+        Enter your details to initiate payment
+    </p>
+
+    <form id="paymentForm">
+
+        <label for="phone">Phone Number</label>
+
+        <input
+            type="tel"
+            id="phone"
+            placeholder="07XXXXXXXX"
+            maxlength="10"
+            required
+        >
+
+        <label for="amount">Amount (KSh)</label>
+
+        <input
+            type="number"
+            id="amount"
+            placeholder="Enter amount"
+            min="1"
+            step="1"
+            required
+        >
+
+        <button type="submit" id="paymentButton">
+            Prompt Payment
+        </button>
+
+    </form>
 
     <p id="message"></p>
+
+    <div class="footer">
+        Secure Payment Records | Powered by Supabase
+    </div>
+
 </div>
 
 <script>
-function promptPayment() {
-    let phone = document.getElementById("phone").value;
-    let amount = document.getElementById("amount").value;
 
-    if (!/^07\d{8}$/.test(phone) &&
-        !/^01\d{8}$/.test(phone)) {
-        alert("Enter a valid Kenyan phone number.");
-        return;
-    }
+// ===================================
+// 1. SUPABASE CONNECTION
+// ===================================
 
-    if (!amount || Number(amount) <= 0) {
-        alert("Enter a valid amount.");
-        return;
-    }
+const SUPABASE_URL = "https://hisoknujnrdvgbgwjwdm.supabase.co";
 
-    alert(
-        "Phone: " + phone +
-        "\nAmount: KSh " + amount +
-        "\n\nPayment request is ready."
+const SUPABASE_KEY = "sb_publishable_qEktVTgKrP5sIzf-HeTMyg_734tagyd";
+
+const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+// ===================================
+// 2. PAYMENT FUNCTION
+// ===================================
+
+document.getElementById("paymentForm")
+.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const phone = document.getElementById("phone").value.trim();
+
+    const amount = Number(
+        document.getElementById("amount").value
     );
-}
+
+    const message = document.getElementById("message");
+
+    const button = document.getElementById("paymentButton");
+
+
+    // Validate phone number
+
+    if (!/^(07|01)\d{8}$/.test(phone)) {
+
+        message.style.color = "red";
+
+        message.innerHTML =
+            "Please enter a valid Kenyan phone number.";
+
+        return;
+    }
+
+
+    // Validate amount
+
+    if (!Number.isSafeInteger(amount) || amount <= 0) {
+
+        message.style.color = "red";
+
+        message.innerHTML =
+            "Please enter a valid whole amount.";
+
+        return;
+    }
+
+
+    // Disable button while saving
+
+    button.disabled = true;
+
+    button.innerText = "Saving Payment...";
+
+    message.style.color = "#555";
+
+    message.innerHTML = "Please wait...";
+
+
+    try {
+
+        // Save payment in Supabase
+
+        const { data, error } = await supabaseClient
+
+            .from("payments")
+
+            .insert([
+                {
+                    phone: phone,
+                    amount: amount,
+                    status: "Pending"
+                }
+            ])
+
+            .select("id")
+            .single();
+
+
+        if (error) {
+
+            throw error;
+
+        }
+
+
+        // Successful database insertion
+
+        message.style.color = "green";
+
+        message.innerHTML = `
+            <strong>Payment Record Saved!</strong><br>
+            Payment ID: ${data.id}<br>
+            Phone: ${phone}<br>
+            Amount: KSh ${amount.toLocaleString()}<br>
+            Status: Pending
+        `;
+
+
+        // Clear form
+
+        document.getElementById("paymentForm").reset();
+
+
+    } catch (error) {
+
+        console.error("Payment error:", error);
+
+        message.style.color = "red";
+
+        message.innerHTML =
+            "Unable to save payment. " + error.message;
+
+    } finally {
+
+        button.disabled = false;
+
+        button.innerText = "Prompt Payment";
+
+    }
+
+});
+
 </script>
 
 </body>
