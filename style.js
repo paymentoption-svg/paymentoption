@@ -1,7 +1,7 @@
 
-// ===================================
+// ==========================================
 // 1. SUPABASE CONNECTION
-// ===================================
+// ==========================================
 
 const SUPABASE_URL =
     "https://hisoknujnrdvgbgwjwdm.supabase.co";
@@ -15,21 +15,39 @@ const supabaseClient = window.supabase.createClient(
 );
 
 
-// ===================================
-// 2. PAYMENT FUNCTION
-// ===================================
+// ==========================================
+// 2. SWITCH BETWEEN SECTIONS
+// ==========================================
+
+function showPayment() {
+    document.getElementById("paymentSection").classList.remove("hidden");
+    document.getElementById("adminSection").classList.add("hidden");
+    document.getElementById("dashboardSection").classList.add("hidden");
+}
+
+function showAdmin() {
+    document.getElementById("paymentSection").classList.add("hidden");
+    document.getElementById("adminSection").classList.remove("hidden");
+    document.getElementById("dashboardSection").classList.add("hidden");
+}
+
+
+// ==========================================
+// 3. CUSTOMER M-PESA PAYMENT
+// ==========================================
 
 let paymentInProgress = false;
 
 document.getElementById("paymentForm").addEventListener(
     "submit",
-    async function (event) {
+    async function(event) {
 
         event.preventDefault();
 
         if (paymentInProgress) return;
 
         const phone = document.getElementById("phone").value.trim();
+
         const amount = Number(
             document.getElementById("amount").value
         );
@@ -37,15 +55,12 @@ document.getElementById("paymentForm").addEventListener(
         const message = document.getElementById("message");
         const button = document.getElementById("paymentButton");
 
-        // Validate phone number
         if (!/^(07|01)\d{8}$/.test(phone)) {
             message.className = "error";
-            message.innerText =
-                "Enter a valid Kenyan phone number.";
+            message.innerText = "Enter a valid Kenyan phone number.";
             return;
         }
 
-        // Validate amount
         if (
             !Number.isSafeInteger(amount) ||
             amount < 1 ||
@@ -63,14 +78,9 @@ document.getElementById("paymentForm").addEventListener(
         button.innerText = "Sending Prompt...";
 
         message.className = "waiting";
-        message.innerText =
-            "Connecting to M-PESA. Please wait...";
+        message.innerText = "Connecting to M-PESA...";
 
         try {
-
-            // ===================================
-            // 3. SEND STK PUSH REQUEST
-            // ===================================
 
             const { data, error } =
                 await supabaseClient.functions.invoke(
@@ -83,36 +93,19 @@ document.getElementById("paymentForm").addEventListener(
                     }
                 );
 
-            if (error) {
-                console.error("Supabase function error:", error);
-                throw new Error(
-                    error.message ||
-                    "Could not connect to the payment server."
-                );
-            }
+            if (error) throw error;
 
             if (!data || !data.success) {
                 throw new Error(
-                    data?.message ||
-                    "Unable to send payment prompt."
+                    data?.message || "Unable to send payment prompt."
                 );
             }
-
-            // ===================================
-            // 4. GET CHECKOUT REFERENCE
-            // ===================================
 
             const checkoutID = data.checkout_request_id;
 
             if (!checkoutID) {
-                throw new Error(
-                    "Missing payment reference from Safaricom."
-                );
+                throw new Error("Missing M-PESA payment reference.");
             }
-
-            // ===================================
-            // 5. DISPLAY STK PUSH MESSAGE
-            // ===================================
 
             message.className = "waiting";
 
@@ -120,14 +113,10 @@ document.getElementById("paymentForm").addEventListener(
                 <strong>M-PESA prompt sent!</strong><br>
                 Check your phone ${phone}.<br>
                 Enter your M-PESA PIN.<br><br>
-                Waiting for payment confirmation...
+                Waiting for confirmation...
             `;
 
             button.innerText = "Waiting for Payment";
-
-            // ===================================
-            // 6. CHECK PAYMENT STATUS
-            // ===================================
 
             let completed = false;
 
@@ -146,16 +135,7 @@ document.getElementById("paymentForm").addEventListener(
                     .eq("checkout_request_id", checkoutID)
                     .maybeSingle();
 
-                if (checkError) {
-                    console.error(
-                        "Payment status error:",
-                        checkError
-                    );
-
-                    throw new Error(
-                        "Payment was requested, but confirmation could not be checked. Please check your M-PESA messages."
-                    );
-                }
+                if (checkError) throw checkError;
 
                 if (!payment) continue;
 
@@ -180,16 +160,12 @@ document.getElementById("paymentForm").addEventListener(
                     message.className = "error";
 
                     message.innerText =
-                        "Payment was unsuccessful. Please try again.";
+                        "Payment unsuccessful. Please try again.";
 
                     completed = true;
                     break;
                 }
             }
-
-            // ===================================
-            // 7. PAYMENT TIMEOUT
-            // ===================================
 
             if (!completed) {
 
@@ -200,15 +176,14 @@ document.getElementById("paymentForm").addEventListener(
                     "Check your M-PESA messages before trying again.";
             }
 
-        } catch (error) {
+        } catch(error) {
 
-            console.error("Payment error:", error);
+            console.error(error);
 
             message.className = "error";
 
             message.innerText =
-                error.message ||
-                "Payment request failed. Please try again.";
+                error.message || "Payment request failed.";
 
         } finally {
 
@@ -217,6 +192,221 @@ document.getElementById("paymentForm").addEventListener(
             button.disabled = false;
             button.innerText = "Prompt Payment";
         }
-
     }
 );
+
+
+// ==========================================
+// 4. ADMIN EMAIL AND PASSWORD LOGIN
+// ==========================================
+
+document.getElementById("adminLoginForm").addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+        const email =
+            document.getElementById("adminEmail").value.trim();
+
+        const password =
+            document.getElementById("adminPassword").value;
+
+        const message =
+            document.getElementById("adminMessage");
+
+        const button =
+            document.getElementById("loginButton");
+
+        button.disabled = true;
+        button.innerText = "Logging in...";
+
+        message.className = "waiting";
+        message.innerText = "Verifying administrator details...";
+
+        try {
+
+            const { data, error } =
+                await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+            if (error) throw error;
+
+            const user = data.user;
+
+            // Check administrator role assigned securely
+            // through Supabase Auth app_metadata.
+
+            if (user.app_metadata?.role !== "admin") {
+
+                await supabaseClient.auth.signOut();
+
+                throw new Error(
+                    "Access denied. This account is not an administrator."
+                );
+            }
+
+            message.innerText = "";
+
+            document.getElementById("adminSection")
+                .classList.add("hidden");
+
+            document.getElementById("paymentSection")
+                .classList.add("hidden");
+
+            document.getElementById("dashboardSection")
+                .classList.remove("hidden");
+
+            document.getElementById("adminWelcome").innerText =
+                "Logged in as: " + user.email;
+
+            await loadPayments();
+
+        } catch(error) {
+
+            console.error(error);
+
+            message.className = "error";
+            message.innerText =
+                error.message || "Invalid email or password.";
+
+        } finally {
+
+            button.disabled = false;
+            button.innerText = "Login to Dashboard";
+        }
+    }
+);
+
+
+// ==========================================
+// 5. LOAD PAYMENT RECORDS
+// ==========================================
+
+async function loadPayments() {
+
+    const table = document.getElementById("paymentsTable");
+
+    const recordsMessage =
+        document.getElementById("recordsMessage");
+
+    table.innerHTML = "";
+
+    recordsMessage.className = "waiting";
+    recordsMessage.innerText = "Loading payment records...";
+
+    try {
+
+        const { data: sessionData } =
+            await supabaseClient.auth.getSession();
+
+        const user = sessionData.session?.user;
+
+        if (!user || user.app_metadata?.role !== "admin") {
+            throw new Error("Administrator login required.");
+        }
+
+        const { data, error } = await supabaseClient
+            .from("payments")
+            .select(`
+                phone,
+                amount,
+                status,
+                mpesa_receipt_number,
+                created_at
+            `)
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+
+            recordsMessage.className = "";
+            recordsMessage.innerText = "No payment records found.";
+
+            return;
+        }
+
+        recordsMessage.className = "success";
+        recordsMessage.innerText =
+            "Total payment records: " + data.length;
+
+        data.forEach(payment => {
+
+            const row = document.createElement("tr");
+
+            const values = [
+                payment.phone ?? "-",
+                payment.amount == null
+                    ? "-"
+                    : "KSh " + Number(payment.amount).toLocaleString(),
+                payment.status ?? "-",
+                payment.mpesa_receipt_number ?? "-",
+                payment.created_at
+                    ? new Date(payment.created_at).toLocaleString()
+                    : "-"
+            ];
+
+            values.forEach((value, index) => {
+
+                const cell = document.createElement("td");
+
+                cell.textContent = value;
+
+                if (index === 2) {
+
+                    if (value === "Paid") {
+                        cell.className = "paid";
+                    }
+
+                    if (value === "Failed") {
+                        cell.className = "failed";
+                    }
+                }
+
+                row.appendChild(cell);
+            });
+
+            table.appendChild(row);
+        });
+
+    } catch(error) {
+
+        console.error(error);
+
+        recordsMessage.className = "error";
+        recordsMessage.innerText =
+            error.message || "Could not load payment records.";
+    }
+}
+
+
+// ==========================================
+// 6. ADMIN LOGOUT
+// ==========================================
+
+async function adminLogout() {
+
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) {
+        alert("Could not log out. Please try again.");
+        return;
+    }
+
+    document.getElementById("dashboardSection")
+        .classList.add("hidden");
+
+    document.getElementById("adminSection")
+        .classList.remove("hidden");
+
+    document.getElementById("adminLoginForm").reset();
+
+    document.getElementById("adminMessage").className = "";
+    document.getElementById("adminMessage").innerText = "";
+
+    document.getElementById("paymentsTable").innerHTML = "";
+
+}
