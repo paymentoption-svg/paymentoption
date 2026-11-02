@@ -1,39 +1,84 @@
 
+/* ==========================================
+   1. GLOBAL SETTINGS
+========================================== */
+
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    width: 100%;
+    min-height: 100%;
+    -webkit-text-size-adjust: 100%;
 }
 
 body {
     font-family: Arial, sans-serif;
     background: #f2f5f3;
+
     display: flex;
     justify-content: center;
     align-items: center;
+
     min-height: 100vh;
+    min-height: 100dvh;
+
     margin: 0;
     padding: 15px;
+
+    width: 100%;
+    overflow-x: hidden;
 }
+
+
+/* ==========================================
+   2. MAIN PAYMENT CONTAINER
+========================================== */
 
 .payment-box {
     background: white;
+
     padding: 25px;
+
     width: 100%;
     max-width: 500px;
+
     border-radius: 12px;
+
     box-shadow: 0 4px 15px #0002;
+
+    margin: auto;
 }
+
+
+/* ==========================================
+   3. M-PESA LOGO
+========================================== */
 
 .mpesa-logo {
     text-align: center;
+
     font-size: 30px;
     font-weight: bold;
+
     color: #168344;
+
     margin-bottom: 10px;
 }
 
+
+/* ==========================================
+   4. HEADINGS
+========================================== */
+
 h2 {
     text-align: center;
+
     color: #168344;
+
     margin-bottom: 10px;
 }
 
@@ -43,52 +88,93 @@ h3 {
 
 .subtitle {
     text-align: center;
+
     color: #777;
+
     font-size: 14px;
+
     margin-bottom: 25px;
 }
 
-/* NAVIGATION */
+
+/* ==========================================
+   5. NAVIGATION BUTTONS
+========================================== */
+
 .navigation {
     display: flex;
+
     flex-direction: row;
+
     gap: 10px;
+
     width: 100%;
+
     margin-bottom: 25px;
 }
 
 button {
     padding: 13px;
+
     background: #168344;
+
     color: white;
+
     border: none;
+
     border-radius: 6px;
+
     cursor: pointer;
+
     font-size: 14px;
+
     font-weight: bold;
+
     touch-action: manipulation;
+
+    -webkit-tap-highlight-color: transparent;
+
+    user-select: none;
+
+    -webkit-user-select: none;
 }
 
 button:hover {
     background: #106333;
 }
 
+button:active {
+    transform: scale(0.98);
+}
+
 button:disabled {
     background: #999;
+
     cursor: not-allowed;
+
+    transform: none;
 }
 
 .navigation button {
     flex: 1;
+
     min-width: 0;
+
     min-height: 48px;
 }
 
+
+/* ADMIN BUTTON */
+
 .admin-button {
     background: #263b30;
+
     display: block;
+
     min-height: 48px;
+
     position: relative;
+
     z-index: 10;
 }
 
@@ -96,47 +182,94 @@ button:disabled {
     background: #14251b;
 }
 
-/* INPUTS */
+
+/* ==========================================
+   6. INPUT FIELDS
+========================================== */
+
 label {
     display: block;
+
     margin-top: 15px;
+
     font-weight: bold;
+
     color: #333;
 }
 
 input {
+    display: block;
+
     width: 100%;
+
     padding: 12px;
+
     margin-top: 8px;
+
     border: 1px solid #ccc;
+
     border-radius: 6px;
+
     font-size: 16px;
+
+    background: white;
+
+    color: #222;
+
+    outline: none;
+
+    appearance: none;
+
+    -webkit-appearance: none;
 }
 
 input:focus {
-    outline: none;
     border-color: #168344;
+
+    box-shadow: 0 0 0 2px #16834420;
 }
+
+input::placeholder {
+    color: #999;
+}
+
+
+/* ==========================================
+   7. MAIN ACTION BUTTON
+========================================== */
 
 .main-button {
     width: 100%;
+
     margin-top: 25px;
+
     min-height: 48px;
+
+    font-size: 15px;
 }
 
-/* MESSAGES */
+
+/* ==========================================
+   8. PAYMENT AND LOGIN MESSAGES
+========================================== */
+
 #message,
 #adminMessage,
 #recordsMessage {
     text-align: center;
+
     margin-top: 20px;
+
     font-size: 14px;
+
     line-height: 1.6;
+
     overflow-wrap: anywhere;
 }
 
 .success {
     color: #168344;
+
     font-weight: bold;
 }
 
@@ -145,152 +278,443 @@ input:focus {
 }
 
 .error {
-    color: red;
+    color: #d00000;
+
+    font-weight: bold;
 }
 
-/* HIDE AND SHOW */
+
+/* ==========================================
+   9. HIDE AND SHOW SECTIONS
+========================================== */
+
 .hidden {
     display: none !important;
 }
 
-/* DASHBOARD */
+
+/* ==========================================
+   10. ADMIN DASHBOARD
+========================================== */
+
 .dashboard {
     margin-top: 25px;
+
+    width: 100%;
 }
 
 .dashboard-header {
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
     gap: 10px;
+
     flex-wrap: wrap;
+
+    margin-bottom: 15px;
 }
+
+.dashboard-header h2 {
+    text-align: left;
+
+    margin: 0;
+}
+
+
+/* LOGOUT BUTTON */
 
 .logout-button {
     background: #b42318;
+
     width: auto;
+
     margin: 0;
+
+    min-height: 44px;
 }
 
 .logout-button:hover {
     background: #8e1912;
 }
 
-/* TABLE */
+
+/* ==========================================
+   11. PAYMENT RECORDS TABLE
+========================================== */
+
 .table-container {
     width: 100%;
+
     overflow-x: auto;
+
+    overflow-y: hidden;
+
     margin-top: 15px;
+
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
     width: 100%;
+
     border-collapse: collapse;
+
     font-size: 13px;
 }
 
 th,
 td {
     padding: 10px;
+
     border: 1px solid #ddd;
+
     text-align: left;
+
     white-space: nowrap;
 }
 
 th {
     background: #168344;
+
     color: white;
+}
+
+td {
+    color: #333;
 }
 
 .paid {
     color: green;
+
     font-weight: bold;
 }
 
 .failed {
     color: red;
+
     font-weight: bold;
 }
 
-/* FOOTER */
-.footer {
-    text-align: center;
-    font-size: 12px;
-    color: #888;
-    margin-top: 25px;
+
+/* ==========================================
+   12. REFRESH BUTTON
+========================================== */
+
+#refreshButton {
+    margin-top: 15px;
+
+    width: 100%;
+
+    min-height: 45px;
 }
 
-/* MOBILE RESPONSIVENESS */
-@media screen and (max-width: 600px) {
+
+/* ==========================================
+   13. FOOTER
+========================================== */
+
+.footer {
+    text-align: center;
+
+    font-size: 12px;
+
+    color: #888;
+
+    margin-top: 25px;
+
+    line-height: 1.5;
+}
+
+
+/* ==========================================
+   14. TABLET RESPONSIVENESS
+========================================== */
+
+@media screen and (max-width: 768px) {
 
     body {
         align-items: flex-start;
-        padding: 10px;
+
+        padding: 15px;
     }
 
     .payment-box {
-        padding: 18px 12px;
+        max-width: 550px;
+
+        padding: 22px;
     }
 
-    .navigation {
-        flex-direction: column;
-        gap: 10px;
+    .dashboard-header {
+        align-items: flex-start;
     }
 
-    .navigation button {
-        width: 100%;
-        min-height: 48px;
-        font-size: 14px;
-        padding: 13px;
-        touch-action: manipulation;
-    }
-
-    .mpesa-logo {
-        font-size: 26px;
-    }
-
-    table {
-        font-size: 12px;
-    }
-}
-/* HIDE SECTIONS */
-.hidden {
-    display: none !important;
 }
 
-/* MOBILE RESPONSIVENESS */
+
+/* ==========================================
+   15. MOBILE RESPONSIVENESS
+========================================== */
+
 @media screen and (max-width: 600px) {
 
+    html,
     body {
         width: 100%;
+
+        min-height: 100%;
+
         overflow-x: hidden;
     }
 
-    .container,
-    #paymentSection,
-    #adminSection,
-    #dashboardSection {
+    body {
+        display: flex;
+
+        align-items: flex-start;
+
+        justify-content: center;
+
+        padding: 10px;
+
+        min-height: 100vh;
+
+        min-height: 100dvh;
+    }
+
+
+    /* MAIN CONTAINER */
+
+    .payment-box {
         width: 100%;
+
         max-width: 100%;
-        box-sizing: border-box;
+
+        padding: 20px 15px;
+
+        margin: 10px auto;
+
+        border-radius: 10px;
     }
 
-    input,
-    button {
-        max-width: 100%;
-        box-sizing: border-box;
+
+    /* LOGO */
+
+    .mpesa-logo {
+        font-size: 26px;
+
+        margin-bottom: 12px;
+    }
+
+
+    /* HEADINGS */
+
+    h2 {
+        font-size: 21px;
+    }
+
+    h3 {
+        font-size: 17px;
+    }
+
+
+    /* NAVIGATION */
+
+    .navigation {
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 12px;
+
+        width: 100%;
+
+        margin-bottom: 22px;
+    }
+
+    .navigation button {
+        display: block;
+
+        width: 100%;
+
+        min-height: 50px;
+
+        padding: 14px;
+
+        font-size: 15px;
+
+        touch-action: manipulation;
+    }
+
+
+    /* INPUTS */
+
+    input {
+        width: 100%;
+
+        min-height: 48px;
+
         font-size: 16px;
+
+        padding: 13px;
     }
 
+
+    /* BUTTONS */
+
     button {
-        min-height: 44px;
-        cursor: pointer;
+        width: 100%;
+
+        min-height: 48px;
+
+        font-size: 15px;
+
+        touch-action: manipulation;
+    }
+
+    .main-button {
+        width: 100%;
+
+        margin-top: 22px;
+    }
+
+
+    /* DASHBOARD */
+
+    .dashboard {
+        width: 100%;
+
+        overflow: hidden;
+    }
+
+    .dashboard-header {
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+        gap: 12px;
+    }
+
+    .dashboard-header h2 {
+        text-align: center;
+    }
+
+    .logout-button {
+        width: 100%;
+    }
+
+
+    /* PAYMENT TABLE */
+
+    .table-container {
+        width: 100%;
+
+        overflow-x: auto;
+
+        -webkit-overflow-scrolling: touch;
     }
 
     table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
+        min-width: 650px;
+
+        font-size: 12px;
     }
 
+    th,
+    td {
+        padding: 9px;
+    }
+
+
+    /* MESSAGES */
+
+    #message,
+    #adminMessage,
+    #recordsMessage {
+        font-size: 14px;
+
+        line-height: 1.6;
+
+        overflow-wrap: anywhere;
+    }
+
+
+    /* FOOTER */
+
+    .footer {
+        font-size: 11px;
+
+        margin-top: 20px;
+    }
+
+}
+
+
+/* ==========================================
+   16. SMALL MOBILE SCREENS
+========================================== */
+
+@media screen and (max-width: 360px) {
+
+    body {
+        padding: 7px;
+    }
+
+    .payment-box {
+        padding: 17px 10px;
+    }
+
+    .mpesa-logo {
+        font-size: 23px;
+    }
+
+    h2 {
+        font-size: 19px;
+    }
+
+    button {
+        font-size: 14px;
+    }
+
+}
+
+
+/* ==========================================
+   17. TOUCHSCREEN IMPROVEMENTS
+========================================== */
+
+@media (hover: none) and (pointer: coarse) {
+
+    button {
+        min-height: 48px;
+
+        cursor: pointer;
+    }
+
+    input {
+        min-height: 48px;
+    }
+
+}
+
+
+/* ==========================================
+   18. PREVENT HORIZONTAL PAGE SCROLLING
+========================================== */
+
+img,
+input,
+button,
+.payment-box {
+    max-width: 100%;
+}
+
+#paymentSection,
+#adminSection,
+#dashboardSection {
+    width: 100%;
+    max-width: 100%;
 }
