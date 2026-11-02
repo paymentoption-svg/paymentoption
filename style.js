@@ -729,7 +729,27 @@ async function checkAdminSession() {
     }
 
 }
+// ==========================================
+// 11. CONNECT LOGOUT BUTTON
+// ==========================================
 
+const logoutButton = document.getElementById("logoutButton");
+
+if (logoutButton) {
+
+    logoutButton.addEventListener("click", function(event) {
+
+        event.preventDefault();
+
+        adminLogout();
+
+    });
+
+} else {
+
+    console.error("Logout button not found. Check its HTML ID.");
+
+}
 
 // RUN SESSION CHECK
 
