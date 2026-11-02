@@ -1,0 +1,255 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f5f3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 15px;
+}
+
+.payment-box {
+    background: white;
+    padding: 25px;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px #0002;
+}
+
+.mpesa-logo {
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    color: #168344;
+    margin-bottom: 10px;
+}
+
+h2 {
+    text-align: center;
+    color: #168344;
+    margin-bottom: 10px;
+}
+
+h3 {
+    color: #168344;
+}
+
+.subtitle {
+    text-align: center;
+    color: #777;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+/* NAVIGATION */
+.navigation {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+button {
+    padding: 13px;
+    background: #168344;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    touch-action: manipulation;
+}
+
+button:hover {
+    background: #106333;
+}
+
+button:disabled {
+    background: #999;
+    cursor: not-allowed;
+}
+
+.navigation button {
+    flex: 1;
+    min-width: 0;
+    min-height: 48px;
+}
+
+.admin-button {
+    background: #263b30;
+    display: block;
+    min-height: 48px;
+    position: relative;
+    z-index: 10;
+}
+
+.admin-button:hover {
+    background: #14251b;
+}
+
+/* INPUTS */
+label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+    color: #333;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+input:focus {
+    outline: none;
+    border-color: #168344;
+}
+
+.main-button {
+    width: 100%;
+    margin-top: 25px;
+    min-height: 48px;
+}
+
+/* MESSAGES */
+#message,
+#adminMessage,
+#recordsMessage {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.success {
+    color: #168344;
+    font-weight: bold;
+}
+
+.waiting {
+    color: #b7791f;
+}
+
+.error {
+    color: red;
+}
+
+/* HIDE AND SHOW */
+.hidden {
+    display: none !important;
+}
+
+/* DASHBOARD */
+.dashboard {
+    margin-top: 25px;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.logout-button {
+    background: #b42318;
+    width: auto;
+    margin: 0;
+}
+
+.logout-button:hover {
+    background: #8e1912;
+}
+
+/* TABLE */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 15px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+th,
+td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+    white-space: nowrap;
+}
+
+th {
+    background: #168344;
+    color: white;
+}
+
+.paid {
+    color: green;
+    font-weight: bold;
+}
+
+.failed {
+    color: red;
+    font-weight: bold;
+}
+
+/* FOOTER */
+.footer {
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    margin-top: 25px;
+}
+
+/* MOBILE RESPONSIVENESS */
+@media screen and (max-width: 600px) {
+
+    body {
+        align-items: flex-start;
+        padding: 10px;
+    }
+
+    .payment-box {
+        padding: 18px 12px;
+    }
+
+    .navigation {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .navigation button {
+        width: 100%;
+        min-height: 48px;
+        font-size: 14px;
+        padding: 13px;
+        touch-action: manipulation;
+    }
+
+    .mpesa-logo {
+        font-size: 26px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+}
