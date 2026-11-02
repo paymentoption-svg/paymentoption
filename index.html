@@ -11,7 +11,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-
         * {
             box-sizing: border-box;
         }
@@ -62,7 +61,6 @@
         }
 
         /* NAVIGATION BUTTONS */
-
         .navigation {
             display: flex;
             flex-direction: row;
@@ -98,6 +96,13 @@
 
         .admin-button {
             background: #263b30;
+            display: block;
+            width: 100%;
+            min-height: 48px;
+            cursor: pointer;
+            touch-action: manipulation;
+            position: relative;
+            z-index: 10;
         }
 
         .admin-button:hover {
@@ -105,7 +110,6 @@
         }
 
         /* INPUT FIELDS */
-
         label {
             display: block;
             margin-top: 15px;
@@ -133,7 +137,6 @@
         }
 
         /* MESSAGES */
-
         #message,
         #adminMessage,
         #recordsMessage {
@@ -158,13 +161,11 @@
         }
 
         /* HIDE AND SHOW SECTIONS */
-
         .hidden {
             display: none !important;
         }
 
         /* ADMIN DASHBOARD */
-
         .dashboard {
             margin-top: 25px;
         }
@@ -222,7 +223,6 @@
         }
 
         /* FOOTER */
-
         .footer {
             text-align: center;
             font-size: 12px;
@@ -231,20 +231,29 @@
         }
 
         /* MOBILE RESPONSIVENESS */
+        @media screen and (max-width: 600px) {
 
-        @media screen and (max-width: 400px) {
+            body {
+                align-items: flex-start;
+                padding: 10px;
+            }
 
             .payment-box {
                 padding: 18px 12px;
             }
 
             .navigation {
-                gap: 6px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
             }
 
             .navigation button {
-                font-size: 11px;
-                padding: 12px 4px;
+                width: 100%;
+                min-height: 48px;
+                font-size: 14px;
+                padding: 13px;
+                touch-action: manipulation;
             }
 
             .mpesa-logo {
@@ -255,7 +264,6 @@
                 font-size: 12px;
             }
         }
-
     </style>
 </head>
 
@@ -271,35 +279,30 @@
         Welcome to our secure payment platform
     </p>
 
-
     <!-- NAVIGATION -->
-
     <div class="navigation">
 
         <button type="button" id="showPaymentBtn">
             Prompt Payment
         </button>
 
-        <button type="button"
-                class="admin-button"
-                id="showAdminBtn">
+        <button
+            type="button"
+            class="admin-button"
+            id="showAdminBtn">
             Payment Done (Admin)
         </button>
 
     </div>
 
-
     <!-- CUSTOMER PAYMENT SECTION -->
-
     <section id="paymentSection">
 
         <h3>Make Payment</h3>
 
         <form id="paymentForm">
 
-            <label for="phone">
-                Phone Number
-            </label>
+            <label for="phone">Phone Number</label>
 
             <input
                 type="tel"
@@ -310,9 +313,7 @@
                 required
             >
 
-            <label for="amount">
-                Amount (KSh)
-            </label>
+            <label for="amount">Amount (KSh)</label>
 
             <input
                 type="number"
@@ -328,9 +329,7 @@
                 type="submit"
                 id="paymentButton"
                 class="main-button">
-
                 Prompt Payment
-
             </button>
 
         </form>
@@ -339,9 +338,7 @@
 
     </section>
 
-
     <!-- ADMIN LOGIN SECTION -->
-
     <section id="adminSection" class="hidden">
 
         <h3>Administrator Login</h3>
@@ -352,9 +349,7 @@
 
         <form id="adminLoginForm">
 
-            <label for="adminEmail">
-                Admin Email
-            </label>
+            <label for="adminEmail">Admin Email</label>
 
             <input
                 type="email"
@@ -364,9 +359,7 @@
                 required
             >
 
-            <label for="adminPassword">
-                Password
-            </label>
+            <label for="adminPassword">Password</label>
 
             <input
                 type="password"
@@ -380,9 +373,7 @@
                 type="submit"
                 id="loginButton"
                 class="main-button">
-
                 Login to Dashboard
-
             </button>
 
         </form>
@@ -391,9 +382,7 @@
 
     </section>
 
-
     <!-- ADMIN DASHBOARD -->
-
     <section id="dashboardSection" class="hidden dashboard">
 
         <div class="dashboard-header">
@@ -404,21 +393,15 @@
                 type="button"
                 class="logout-button"
                 id="logoutButton">
-
                 Logout
-
             </button>
 
         </div>
 
         <p id="adminWelcome"></p>
 
-        <button
-            type="button"
-            id="refreshButton">
-
+        <button type="button" id="refreshButton">
             Refresh Payments
-
         </button>
 
         <p id="recordsMessage"></p>
@@ -426,9 +409,7 @@
         <div class="table-container">
 
             <table>
-
                 <thead>
-
                     <tr>
                         <th>Phone</th>
                         <th>Amount</th>
@@ -436,31 +417,23 @@
                         <th>M-PESA Receipt</th>
                         <th>Date</th>
                     </tr>
-
                 </thead>
 
-                <tbody id="paymentsTable">
-
-                </tbody>
-
+                <tbody id="paymentsTable"></tbody>
             </table>
 
         </div>
 
     </section>
 
-
     <!-- FOOTER -->
-
     <div class="footer">
         Secure M-PESA Payment | Powered by Supabase
     </div>
 
 </div>
 
-
 <!-- JAVASCRIPT -->
-
 <script src="style.js"></script>
 
 </body>
