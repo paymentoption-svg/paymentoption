@@ -1,5 +1,4 @@
 
-
 "use strict";
 
 // ==========================================
@@ -49,6 +48,27 @@ const recordsMessage =
 const paymentsTable =
     document.getElementById("paymentsTable");
 
+const showPaymentBtn =
+    document.getElementById("showPaymentBtn");
+
+const showAdminBtn =
+    document.getElementById("showAdminBtn");
+
+const paymentButton =
+    document.getElementById("paymentButton");
+
+const loginButton =
+    document.getElementById("loginButton");
+
+const logoutButton =
+    document.getElementById("logoutButton");
+
+const refreshButton =
+    document.getElementById("refreshButton");
+
+const adminWelcome =
+    document.getElementById("adminWelcome");
+
 
 // ==========================================
 // 3. CHECK HTML ELEMENTS
@@ -64,10 +84,11 @@ const requiredElements = {
     adminMessage,
     recordsMessage,
     paymentsTable,
-    showPaymentBtn: document.getElementById("showPaymentBtn"),
-    showAdminBtn: document.getElementById("showAdminBtn"),
-    paymentButton: document.getElementById("paymentButton"),
-    loginButton: document.getElementById("loginButton")
+    showPaymentBtn,
+    showAdminBtn,
+    paymentButton,
+    loginButton,
+    logoutButton
 };
 
 for (const [name, element] of Object.entries(requiredElements)) {
@@ -83,8 +104,9 @@ for (const [name, element] of Object.entries(requiredElements)) {
 
 // CUSTOMER PAYMENT BUTTON
 
-document.getElementById("showPaymentBtn")
-    .addEventListener("click", function () {
+if (showPaymentBtn) {
+
+    showPaymentBtn.addEventListener("click", function () {
 
         paymentSection.classList.remove("hidden");
         adminSection.classList.add("hidden");
@@ -95,11 +117,14 @@ document.getElementById("showPaymentBtn")
 
     });
 
+}
+
 
 // ADMIN BUTTON
 
-document.getElementById("showAdminBtn")
-    .addEventListener("click", function () {
+if (showAdminBtn) {
+
+    showAdminBtn.addEventListener("click", function () {
 
         paymentSection.classList.add("hidden");
         adminSection.classList.remove("hidden");
@@ -109,6 +134,8 @@ document.getElementById("showAdminBtn")
         adminMessage.className = "";
 
     });
+
+}
 
 
 // ==========================================
@@ -129,9 +156,7 @@ paymentForm.addEventListener("submit", async function (event) {
     const amount =
         Number(document.getElementById("amount").value);
 
-    const button =
-        document.getElementById("paymentButton");
-
+    const button = paymentButton;
 
     // VALIDATE PHONE NUMBER
 
@@ -144,7 +169,6 @@ paymentForm.addEventListener("submit", async function (event) {
 
         return;
     }
-
 
     // VALIDATE AMOUNT
 
@@ -162,7 +186,6 @@ paymentForm.addEventListener("submit", async function (event) {
         return;
     }
 
-
     paymentInProgress = true;
 
     button.disabled = true;
@@ -173,7 +196,6 @@ paymentForm.addEventListener("submit", async function (event) {
 
     paymentMessage.innerText =
         "Connecting to M-PESA. Please wait...";
-
 
     try {
 
@@ -190,7 +212,6 @@ paymentForm.addEventListener("submit", async function (event) {
                 }
             );
 
-
         if (error) throw error;
 
         if (!data || !data.success) {
@@ -200,7 +221,6 @@ paymentForm.addEventListener("submit", async function (event) {
                 "Unable to send payment prompt."
             );
         }
-
 
         // GET CHECKOUT REQUEST ID
 
@@ -213,7 +233,6 @@ paymentForm.addEventListener("submit", async function (event) {
                 "Missing M-PESA payment reference."
             );
         }
-
 
         // DISPLAY MESSAGE
 
@@ -228,7 +247,6 @@ paymentForm.addEventListener("submit", async function (event) {
 
         button.innerText = "Waiting for Payment";
 
-
         // CHECK PAYMENT STATUS
 
         let completed = false;
@@ -238,7 +256,6 @@ paymentForm.addEventListener("submit", async function (event) {
             await new Promise(resolve =>
                 setTimeout(resolve, 3000)
             );
-
 
             const {
                 data: payment,
@@ -254,7 +271,6 @@ paymentForm.addEventListener("submit", async function (event) {
                 )
                 .maybeSingle();
 
-
             if (checkError) {
 
                 throw new Error(
@@ -262,9 +278,7 @@ paymentForm.addEventListener("submit", async function (event) {
                 );
             }
 
-
             if (!payment) continue;
-
 
             // SUCCESSFUL PAYMENT
 
@@ -285,7 +299,6 @@ paymentForm.addEventListener("submit", async function (event) {
                 break;
             }
 
-
             // FAILED PAYMENT
 
             if (payment.status === "Failed") {
@@ -302,7 +315,6 @@ paymentForm.addEventListener("submit", async function (event) {
 
         }
 
-
         // TIMEOUT
 
         if (!completed) {
@@ -314,7 +326,6 @@ paymentForm.addEventListener("submit", async function (event) {
                 "Check your M-PESA messages before trying again.";
 
         }
-
 
     } catch (error) {
 
@@ -358,9 +369,7 @@ adminLoginForm.addEventListener("submit", async function (event) {
         document.getElementById("adminPassword")
             .value;
 
-    const button =
-        document.getElementById("loginButton");
-
+    const button = loginButton;
 
     loginInProgress = true;
 
@@ -373,7 +382,6 @@ adminLoginForm.addEventListener("submit", async function (event) {
     adminMessage.innerText =
         "Verifying administrator details...";
 
-
     try {
 
         // AUTHENTICATE WITH SUPABASE
@@ -384,20 +392,13 @@ adminLoginForm.addEventListener("submit", async function (event) {
                 password: password
             });
 
-
         if (error) throw error;
 
         const user = data.user;
 
-
-        // DEBUG INFORMATION
-
         console.log("LOGIN SUCCESSFUL");
-
         console.log("USER EMAIL:", user.email);
-
         console.log("APP METADATA:", user.app_metadata);
-
 
         // VERIFY ADMIN ROLE
 
@@ -410,7 +411,6 @@ adminLoginForm.addEventListener("submit", async function (event) {
             );
         }
 
-
         // OPEN ADMIN DASHBOARD
 
         paymentSection.classList.add("hidden");
@@ -419,20 +419,16 @@ adminLoginForm.addEventListener("submit", async function (event) {
 
         dashboardSection.classList.remove("hidden");
 
-
-        document.getElementById("adminWelcome")
-            .innerText = "Logged in as: " + user.email;
-
+        adminWelcome.innerText =
+            "Logged in as: " + user.email;
 
         adminMessage.innerText = "";
 
         adminMessage.className = "";
 
-
         // LOAD PAYMENT RECORDS
 
         await loadPayments();
-
 
     } catch (error) {
 
@@ -469,7 +465,6 @@ async function loadPayments() {
     recordsMessage.innerText =
         "Loading payment records...";
 
-
     try {
 
         // VERIFY ADMIN SESSION
@@ -481,14 +476,12 @@ async function loadPayments() {
 
         const user = sessionData.session?.user;
 
-
         if (!user || user.app_metadata?.role !== "admin") {
 
             throw new Error(
                 "Administrator login required."
             );
         }
-
 
         // FETCH PAYMENT RECORDS
 
@@ -506,9 +499,7 @@ async function loadPayments() {
                     ascending: false
                 });
 
-
         if (error) throw error;
-
 
         // EMPTY RECORDS
 
@@ -522,12 +513,10 @@ async function loadPayments() {
             return;
         }
 
-
         recordsMessage.className = "success";
 
         recordsMessage.innerText =
             "Total payment records: " + data.length;
-
 
         // DISPLAY PAYMENT RECORDS
 
@@ -554,13 +543,11 @@ async function loadPayments() {
 
             ];
 
-
             values.forEach((value, index) => {
 
                 const cell = document.createElement("td");
 
                 cell.textContent = value;
-
 
                 // STATUS COLOURS
 
@@ -576,16 +563,13 @@ async function loadPayments() {
 
                 }
 
-
                 row.appendChild(cell);
 
             });
 
-
             paymentsTable.appendChild(row);
 
         });
-
 
     } catch (error) {
 
@@ -604,9 +588,6 @@ async function loadPayments() {
 // ==========================================
 // 8. REFRESH PAYMENT RECORDS
 // ==========================================
-
-const refreshButton =
-    document.getElementById("refreshButton");
 
 if (refreshButton) {
 
@@ -634,18 +615,24 @@ if (refreshButton) {
 
 
 // ==========================================
-// 9. ADMIN LOGOUT
+// 9. ADMIN LOGOUT FUNCTION
 // ==========================================
 
 async function adminLogout() {
 
+    if (logoutButton) {
+        logoutButton.disabled = true;
+        logoutButton.innerText = "Logging out...";
+    }
+
     try {
+
+        // SIGN OUT FROM SUPABASE
 
         const { error } =
             await supabaseClient.auth.signOut();
 
         if (error) throw error;
-
 
         // CLEAR DASHBOARD
 
@@ -659,9 +646,9 @@ async function adminLogout() {
 
         recordsMessage.innerText = "";
 
-        document.getElementById("adminWelcome")
-            .innerText = "";
+        recordsMessage.className = "";
 
+        adminWelcome.innerText = "";
 
         // RESET LOGIN FORM
 
@@ -671,12 +658,28 @@ async function adminLogout() {
 
         adminMessage.innerText = "";
 
+        // RESET LOGIN BUTTON
+
+        loginButton.disabled = false;
+
+        loginButton.innerText = "Login to Dashboard";
+
+        console.log("Administrator successfully logged out.");
 
     } catch (error) {
 
         console.error("Logout error:", error);
 
-        alert("Could not log out. Please try again.");
+        alert(
+            "Could not log out: " + error.message
+        );
+
+    } finally {
+
+        if (logoutButton) {
+            logoutButton.disabled = false;
+            logoutButton.innerText = "Logout";
+        }
 
     }
 
@@ -684,7 +687,30 @@ async function adminLogout() {
 
 
 // ==========================================
-// 10. AUTOMATIC SESSION CHECK
+// 10. CONNECT LOGOUT BUTTON
+// ==========================================
+
+if (logoutButton) {
+
+    logoutButton.addEventListener("click", function (event) {
+
+        event.preventDefault();
+
+        adminLogout();
+
+    });
+
+} else {
+
+    console.error(
+        "Logout button not found. Check HTML ID: logoutButton"
+    );
+
+}
+
+
+// ==========================================
+// 11. AUTOMATIC SESSION CHECK
 // ==========================================
 
 async function checkAdminSession() {
@@ -698,7 +724,6 @@ async function checkAdminSession() {
 
         const user = data.session?.user;
 
-
         if (user && user.app_metadata?.role === "admin") {
 
             paymentSection.classList.add("hidden");
@@ -707,8 +732,8 @@ async function checkAdminSession() {
 
             dashboardSection.classList.remove("hidden");
 
-            document.getElementById("adminWelcome")
-                .innerText = "Logged in as: " + user.email;
+            adminWelcome.innerText =
+                "Logged in as: " + user.email;
 
             await loadPayments();
 
@@ -731,6 +756,8 @@ async function checkAdminSession() {
 }
 
 
-// RUN SESSION CHECK
+// ==========================================
+// 12. RUN SESSION CHECK
+// ==========================================
 
 checkAdminSession();
